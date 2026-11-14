@@ -7,3 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+# Design
+
+Before changing any UI, styling, layout, copy, or motion, read [DESIGN.md](./DESIGN.md). The CSS is layered (`globals.css`, then `glass.css`), and the last matching rule wins, so follow its guidance before editing styles.

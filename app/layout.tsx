@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./glass.css";
+import { timelineContent } from "./timeline-content";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nova — Independent Creative Studio",
-  description: "Ideas beyond the ordinary. Art direction, digital imagery, and photography exploring what comes next.",
+  title: `${timelineContent.title} — Interactive Timeline`,
+  description: timelineContent.labels.description,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

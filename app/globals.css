@@ -29,7 +29,7 @@ header{position:relative;z-index:5;margin-top:18px;height:78px;padding:0 24px;bo
 /* Motion uses independent transforms so hover, scroll and depth compose. */
 .cursor-light{position:fixed;inset:0;z-index:10;pointer-events:none;opacity:0;background:radial-gradient(420px circle at var(--cursor-x,50%) var(--cursor-y,30%),#8aabff0a,transparent 72%);transition:opacity .6s}.pointer-lit .cursor-light{opacity:1}
 @media(prefers-reduced-motion:no-preference){
-.portfolio{animation:page-arrive 1s cubic-bezier(.16,1,.3,1) both}
+.portfolio{animation:page-arrive 1s cubic-bezier(.16,1,.3,1) backwards}
 .hero-copy>*{animation:copy-arrive 1.15s cubic-bezier(.16,1,.3,1) both}.hero-copy h1{animation-delay:.1s}.hero-copy p{animation-delay:.18s}.hero-copy .hero-cta{animation-delay:.26s}
 .reveal{opacity:0;translate:0 26px;transition:opacity .85s cubic-bezier(.16,1,.3,1) var(--reveal-delay,0ms),translate .85s cubic-bezier(.16,1,.3,1) var(--reveal-delay,0ms),transform .4s,border-color .4s,box-shadow .4s}.reveal.revealed,.reveal:focus-within,.reveal:focus-visible{opacity:1;translate:0 0}
 .hero-art{translate:0 var(--parallax,0px);transition:translate .3s ease-out}.orb{rotate:x var(--orb-x,0deg);transform-style:preserve-3d;transition:rotate .65s cubic-bezier(.16,1,.3,1)}.orb:before{rotate:y var(--orb-y,0deg);transition:rotate .65s}.orb-ring{rotate:y var(--orb-y,0deg);transition:rotate .65s}.holo-panel{translate:0 calc(var(--parallax,0px) * -.4);transition:translate .65s ease-out;animation:panel-arrive 1.5s cubic-bezier(.16,1,.3,1) both}.panel-bottom{animation-delay:.15s}
@@ -73,3 +73,63 @@ dialog{opacity:0;translate:0 18px;scale:.98;transition:opacity .3s,translate .4s
 .ui-button--icon { background: transparent; }
 .innovation-card details[open] .card-expand b { rotate: 45deg; }
 @media(prefers-reduced-motion:no-preference){.motion-scene.is-visible .scene-frame,.motion-scene.is-visible .scene-atmosphere{animation-play-state:var(--scene-play,running)}}
+
+/* Timeline: vertical history with sticky navigation controls. Structure and layout only; surfaces and type live in glass.css. */
+.timeline-intro{max-width:900px;padding:72px 0 52px}
+.timeline-intro h1{margin:24px 0 26px}
+.timeline-intro>p{max-width:540px;margin:0}
+.timeline-stats{display:flex;flex-wrap:wrap;gap:16px 44px;margin:40px 0 0;padding:0;list-style:none}
+.timeline-stats li{display:grid;gap:10px}
+.timeline-section{padding:64px 0 0}
+.timeline-layout{display:grid;grid-template-columns:minmax(250px,310px) minmax(0,1fr);gap:clamp(32px,5vw,88px);align-items:start;padding-bottom:30vh}
+
+.timeline-controls{position:sticky;top:24px;z-index:4;display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"readout readout" "prev next" "scrub scrub" "more more";gap:20px 10px;padding:22px;max-height:calc(100vh - 48px);overflow:auto}
+.timeline-readout{grid-area:readout;min-width:0}
+.timeline-prev{grid-area:prev}
+.timeline-next{grid-area:next}
+.timeline-scrubber{grid-area:scrub}
+.timeline-toggle{grid-area:toggle;display:none}
+.timeline-more{grid-area:more;display:grid;gap:22px}
+.timeline-count{display:flex;align-items:baseline;gap:10px}
+.timeline-now{display:block}
+.timeline-step{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 14px}
+.timeline-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.timeline-chip{display:inline-flex;align-items:center;gap:6px}
+.timeline-toggle{align-items:center;justify-content:space-between}
+
+.timeline{margin:0;padding:0;list-style:none}
+.timeline-item{display:grid;grid-template-columns:clamp(88px,9vw,128px) 28px minmax(0,1fr);grid-template-areas:"when rail card";column-gap:clamp(12px,2vw,28px);align-items:start;margin-bottom:56px;scroll-margin-top:24px}
+.timeline-item:last-child{margin-bottom:0}
+.timeline-when{grid-area:when;display:grid;justify-items:end;gap:10px;padding-top:5px}
+.timeline-rail{grid-area:rail;position:relative;align-self:stretch}
+.timeline-rail:before{content:"";position:absolute;left:50%;top:31px;bottom:-56px;width:1px;translate:-50% 0}
+.timeline-item:last-child .timeline-rail:before{bottom:0}
+.timeline-node{position:absolute;left:50%;top:17px;translate:-50% 0;width:28px;height:28px;padding:0;border-radius:50%;display:grid;place-items:center}
+.timeline-node-dot{display:block;width:10px;height:10px;border-radius:50%}
+.timeline-card{grid-area:card;min-width:0;padding:24px 26px 26px}
+.timeline-meta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+.timeline-card h2{margin:16px 0 12px}
+.timeline-card p{margin:0}
+.timeline-people{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:20px;padding-top:18px}
+.timeline-people ul{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.timeline-empty{margin:0;padding:48px 0}
+
+@media(max-width:1000px){
+.timeline-section{padding-top:44px}
+.timeline-layout{display:block}
+.timeline-controls{top:12px;margin-bottom:28px;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"prev readout next" "scrub scrub scrub" "toggle toggle toggle" "more more more";gap:8px 12px;padding:12px 14px;max-height:calc(100vh - 24px)}
+.timeline-toggle{display:flex}
+.timeline-more{display:none}
+.timeline-controls.is-open .timeline-more{display:grid}
+}
+@media(max-width:680px){
+.timeline-intro{padding:44px 0 36px}
+.timeline-stats{gap:14px 30px;margin-top:30px}
+.timeline-section{padding-top:36px}
+.timeline-step{padding:12px 16px}
+.timeline-item{grid-template-columns:28px minmax(0,1fr);grid-template-areas:"rail when" "rail card";column-gap:10px;margin-bottom:36px}
+.timeline-when{display:flex;align-items:baseline;justify-content:flex-start;gap:14px;padding:3px 0 14px}
+.timeline-rail:before{top:20px;bottom:-36px}
+.timeline-node{top:5px}
+.timeline-card{padding:20px 18px 22px}
+}

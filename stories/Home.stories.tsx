@@ -1,19 +1,19 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 
 import Home from '../app/page';
-import { novaContent } from '../app/nova-content';
+import { timelineContent } from '../app/timeline-content';
 import '../app/globals.css';
 import '../app/glass.css';
 
 const meta = {
-  title: 'Portfolio/Home',
+  title: 'Timeline/Home',
   component: Home,
   parameters: {
     layout: 'fullscreen',
   },
   tags: ['autodocs'],
   args: {
-    content: novaContent,
+    content: timelineContent,
   },
 } satisfies Meta<typeof Home>;
 
@@ -22,16 +22,20 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const EmptyPortfolio: Story = {
+export const SingleEvent: Story = {
   args: {
     content: {
-      ...novaContent,
-      projects: [],
-      descriptions: [],
-      labels: {
-        ...novaContent.labels,
-        projectCount: '00',
-      },
+      ...timelineContent,
+      events: timelineContent.events.slice(0, 1),
+    },
+  },
+};
+
+export const EmptyTimeline: Story = {
+  args: {
+    content: {
+      ...timelineContent,
+      events: [],
     },
   },
 };

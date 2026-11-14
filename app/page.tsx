@@ -1,48 +1,102 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Motion from "./motion";
-import { novaContent, type NovaContent } from "./nova-content";
+import { decadeOf, eventAnchor, getCategories, getDecades, pad, timelineContent, type TimelineContent } from "./timeline-content";
 import { SiteHeader } from "./components/Header";
-import { Hero } from "./components/Hero";
-import { AboutSection } from "./components/AboutSection";
-import { InnovationSection } from "./components/InnovationSection";
-import { WorkSection } from "./components/WorkSection";
-import { PossibilitiesSection } from "./components/PossibilitiesSection";
-import { ContactSection } from "./components/ContactSection";
+import { TimelineIntro } from "./components/TimelineIntro";
+import { TimelineControls } from "./components/TimelineControls";
+import { Timeline } from "./components/Timeline";
 import { SiteFooter } from "./components/Footer";
-import { ProjectDialog } from "./components/ProjectDialog";
 
-export interface HomeProps { content?: NovaContent }
+export interface HomeProps { content?: TimelineContent }
 
-export default function Home({ content = novaContent }: HomeProps = {}) {
-  const { labels, projects, descriptions, about, innovation, possibilities } = content;
-  const [motionPaused, setMotionPaused] = useState(false);
-  const [filter, setFilter] = useState(labels.filters[0]);
-  const [selected, setSelected] = useState(0);
-  const [shareStatus, setShareStatus] = useState("");
-  const dialog = useRef<HTMLDialogElement>(null);
+export default function Home({ content = timelineContent }: HomeProps = {}) {
+  const { title, events, labels } = content;
+  const [category, setCategory] = useState(labels.allLabel);
+  const [active, setActive] = useState(0);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
+  // While a button-driven scroll is running, the scroll-spy must not overwrite the chosen event.
+  const navLock = useRef(0);
+  const startOver = useRef(false);
 
-  const share = () => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href.split("#")[0])}`, "_blank", "noopener,noreferrer");
-  const copyLink = async () => {
-    try { await navigator.clipboard.writeText(window.location.href.split("#")[0]); setShareStatus("Portfolio link copied."); }
-    catch { setShareStatus("Copy the address from your browser to share this portfolio."); }
+  const visible = useMemo(() => category === labels.allLabel ? events : events.filter((event) => event.category === category), [category, events, labels.allLabel]);
+  const categories = useMemo(() => [{ name: labels.allLabel, count: events.length }, ...getCategories(events)], [events, labels.allLabel]);
+  const decades = useMemo(() => getDecades(visible), [visible]);
+  const activeIndex = Math.min(active, Math.max(visible.length - 1, 0));
+  const activeEvent = visible[activeIndex];
+
+  const goTo = (index: number) => {
+    const next = Math.max(0, Math.min(visible.length - 1, index));
+    const target = visible[next];
+    if (!target) return;
+    navLock.current = performance.now() + 1000;
+    setActive(next);
+    setAnnouncement(`${target.year}. ${target.title}. ${next + 1} ${labels.controls.of} ${visible.length}`);
+    // Follows the CSS `scroll-behavior`, so it is instant when the visitor prefers reduced motion.
+    document.getElementById(eventAnchor(target.id))?.scrollIntoView({ block: "center" });
   };
 
-  return <div className="portfolio" data-motion-paused={motionPaused}>
-    <Motion revision={filter} />
-    <SiteHeader logo={labels.logo} nav={labels.nav} projectCount={labels.projectCount} availability={labels.availability} />
+  const chooseCategory = (next: string) => {
+    setCategory(next);
+    setActive(0);
+    setAnnouncement("");
+    startOver.current = true;
+  };
+
+  // A new filter re-mounts the list, so bring its first event into view instead of
+  // letting the scroll-spy pick whatever now sits in the middle of the viewport.
+  useEffect(() => {
+    if (!startOver.current) return;
+    startOver.current = false;
+    const first = visible[0];
+    if (!first) return;
+    navLock.current = performance.now() + 1000;
+    document.getElementById(eventAnchor(first.id))?.scrollIntoView({ block: "center" });
+  }, [visible]);
+
+  // Scroll-spy: the event crossing the middle of the viewport becomes the active one.
+  useEffect(() => {
+    const anchors = visible.map((event) => eventAnchor(event.id));
+    const observer = new IntersectionObserver((entries) => {
+      if (performance.now() < navLock.current) return;
+      entries.forEach(({ target, isIntersecting }) => {
+        const index = anchors.indexOf(target.id);
+        if (isIntersecting && index >= 0) setActive(index);
+      });
+    }, { rootMargin: "-45% 0px -45% 0px" });
+    anchors.forEach((id) => { const element = document.getElementById(id); if (element) observer.observe(element); });
+    const release = () => { navLock.current = 0; };
+    window.addEventListener("scrollend", release);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scrollend", release);
+    };
+  }, [visible]);
+
+  const first = events[0];
+  const last = events[events.length - 1];
+  const stats = [
+    { value: pad(events.length), label: labels.stats.milestones },
+    { value: pad(getCategories(events).length), label: labels.stats.categories },
+    { value: String(first && last ? last.year - first.year : 0), label: labels.stats.years },
+  ];
+  const kicker = first && last ? `${labels.kicker} / ${first.year} — ${last.year}` : labels.kicker;
+
+  return <div className="portfolio">
+    <Motion revision={category} />
+    <SiteHeader logo={labels.logo} navLabel={labels.navLabel} links={labels.nav} status={`${pad(events.length)} ${labels.statusSuffix}`} />
     <main>
-      <Hero kicker={labels.heroKicker} title={labels.heroTitle} description={labels.heroDescription} cta={labels.heroCta} />
-      <div className="discipline-strip">{labels.nav.concat(labels.filters).slice(0, 4).map((item) => <span key={item}>{item}</span>)}</div>
-      <AboutSection sectionLabel={labels.sections[0]} {...about} />
-      <InnovationSection sectionLabel={labels.sections[1]} title={innovation.title} description={innovation.description} cards={innovation.cards} link={about.link} contactCta={labels.contactCta} />
-      <WorkSection sectionLabel={labels.sections[2]} title={labels.heroTitle} projectCount={labels.projectCount} filters={labels.filters} filter={filter} projects={projects} projectBadge={labels.projectBadge} projectCaption={labels.projectCaption} motionPaused={motionPaused} pauseLabel={labels.pause} playLabel={labels.play} onFilter={setFilter} onMotionToggle={() => setMotionPaused((paused) => !paused)} onSelect={(index) => { setSelected(index); dialog.current?.showModal(); }} />
-      <div className="archive"><span>{labels.archive[0]}</span><b>+</b><span>{labels.archive[1]}</span></div>
-      <PossibilitiesSection sectionLabel={labels.sections[3]} {...possibilities} />
-      <ContactSection title={labels.contactTitle} cta={labels.contactCta} />
+      <TimelineIntro kicker={kicker} title={title} description={labels.description} stats={stats} />
+      <div className="rule" />
+      <section id="timeline" className="timeline-section">
+        <div className="timeline-layout">
+          <TimelineControls labels={labels.controls} total={visible.length} activeIndex={activeIndex} activeEvent={activeEvent} categories={categories} category={category} decades={decades} activeDecade={activeEvent ? `${decadeOf(activeEvent.year)}s` : undefined} moreOpen={moreOpen} announcement={announcement} onNavigate={goTo} onCategory={chooseCategory} onToggleMore={() => setMoreOpen((open) => !open)} />
+          <Timeline key={category} title={title} events={visible} activeIndex={activeIndex} peopleLabel={labels.peopleLabel} selectLabel={labels.selectLabel} emptyLabel={labels.emptyLabel} onSelect={goTo} />
+        </div>
+      </section>
     </main>
-    <SiteFooter logo={labels.logo} nav={labels.nav} description={labels.footerDescription} shareLabel={labels.shareLabel} copyLabel={labels.copyLabel} shareStatus={shareStatus} onShare={share} onCopy={copyLink} />
-    <ProjectDialog dialog={dialog} project={projects[selected]} description={descriptions[selected]} closeLabel={labels.closeLabel} />
+    <SiteFooter logo={labels.logo} navLabel={labels.navLabel} links={labels.nav} description={labels.footerDescription} note={labels.footerNote} tagline={labels.footerTagline} backToTop={labels.backToTop} />
   </div>;
 }

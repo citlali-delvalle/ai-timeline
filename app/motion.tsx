@@ -14,9 +14,7 @@ export default function Motion({ revision }: { revision: string }) {
       dispose();
       if (preference.matches) return;
 
-      const reveals = document.querySelectorAll<HTMLElement>(
-        ".toolbar, .project, .about > *, .contact > *, .discipline-strip, .archive, .section-heading, .innovation-card, .possibilities > :not(.possibility-halo)",
-      );
+      const reveals = document.querySelectorAll<HTMLElement>(".timeline-intro > *, .timeline-item");
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(({ target, isIntersecting }) => {
           if (isIntersecting) {
@@ -31,22 +29,7 @@ export default function Motion({ revision }: { revision: string }) {
         observer.observe(element);
       });
 
-      const hero = document.querySelector<HTMLElement>(".hero");
-      const images = [...document.querySelectorAll<HTMLElement>(".project-image")];
-      const scenes = new IntersectionObserver((entries) => {
-        entries.forEach(({ target, isIntersecting }) => {
-          target.classList.toggle("is-visible", isIntersecting);
-        });
-      }, { threshold: 0.01 });
-      images.forEach((image) => scenes.observe(image));
-      function syncVisibility() {
-        images.forEach((image) => {
-          image.style.setProperty("--scene-play", document.hidden ? "paused" : "running");
-        });
-      }
-      document.addEventListener("visibilitychange", syncVisibility);
-      syncVisibility();
-      const magnets = [...document.querySelectorAll<HTMLElement>(".hero-cta, .contact-circle, nav a, .filters button")];
+      const magnets = [...document.querySelectorAll<HTMLElement>("nav a, .timeline-step")];
       let frame = 0;
       let pointerX = window.innerWidth / 2;
       let pointerY = window.innerHeight / 2;
@@ -55,25 +38,6 @@ export default function Motion({ revision }: { revision: string }) {
 
       function paint() {
         frame = 0;
-        const height = window.innerHeight;
-        if (hero) {
-          const bounds = hero.getBoundingClientRect();
-          hero.style.setProperty("--parallax", `${Math.max(-70, Math.min(70, -bounds.top * 0.13))}px`);
-          if (finePointer.matches && pointerActive) {
-            const x = (pointerX - bounds.left) / bounds.width - 0.5;
-            const y = (pointerY - bounds.top) / bounds.height - 0.5;
-            const inside = pointerX >= bounds.left && pointerX <= bounds.right && pointerY >= bounds.top && pointerY <= bounds.bottom;
-            hero.style.setProperty("--orb-x", `${inside ? -y * 20 : 0}deg`);
-            hero.style.setProperty("--orb-y", `${inside ? x * 24 : 0}deg`);
-          }
-        }
-        images.forEach((image) => {
-          const bounds = image.getBoundingClientRect();
-          if (bounds.bottom > 0 && bounds.top < height) {
-            const offset = (height / 2 - bounds.top - bounds.height / 2) * 0.055;
-            image.style.setProperty("--image-shift", `${Math.max(-18, Math.min(18, offset))}px`);
-          }
-        });
         if (finePointer.matches && pointerActive) {
           root.style.setProperty("--cursor-x", `${pointerX}px`);
           root.style.setProperty("--cursor-y", `${pointerY}px`);
@@ -103,8 +67,6 @@ export default function Motion({ revision }: { revision: string }) {
         root.classList.remove("pointer-lit");
         activeMagnet?.style.removeProperty("translate");
         activeMagnet = null;
-        hero?.style.setProperty("--orb-x", "0deg");
-        hero?.style.setProperty("--orb-y", "0deg");
       }
       window.addEventListener("scroll", schedule, { passive: true });
       window.addEventListener("resize", schedule, { passive: true });
@@ -113,12 +75,6 @@ export default function Motion({ revision }: { revision: string }) {
       window.addEventListener("blur", leave);
       schedule();
       dispose = () => {
-        scenes.disconnect();
-        document.removeEventListener("visibilitychange", syncVisibility);
-        images.forEach((image) => {
-          image.classList.remove("is-visible");
-          image.style.removeProperty("--scene-play");
-        });
         observer.disconnect();
         cancelAnimationFrame(frame);
         window.removeEventListener("scroll", schedule);
@@ -127,8 +83,6 @@ export default function Motion({ revision }: { revision: string }) {
         document.removeEventListener("pointerleave", leave);
         window.removeEventListener("blur", leave);
         leave();
-        hero?.style.removeProperty("--parallax");
-        images.forEach((image) => image.style.removeProperty("--image-shift"));
         reveals.forEach((element) => element.classList.remove("reveal", "revealed"));
       };
     }
@@ -144,4 +98,3 @@ export default function Motion({ revision }: { revision: string }) {
 
   return <div className="cursor-light" aria-hidden="true" />;
 }
-

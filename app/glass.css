@@ -14,6 +14,8 @@ body {
     radial-gradient(ellipse at 92% 5%, #7054c02e, transparent 28%),
     radial-gradient(ellipse at 3% 27%, #287b9a24, transparent 24%),
     radial-gradient(ellipse at 82% 56%, #5d4eab20, transparent 28%), #080c16;
+  /* <html> is only viewport-tall, so a scrolling background would tile and show a seam. */
+  background-attachment: fixed;
 }
 
 header,
@@ -23,6 +25,8 @@ header,
 .filters,
 .motion-toggle,
 .contact-circle,
+.timeline-controls,
+.timeline-card,
 .footer-social a,
 .footer-social button {
   background: var(--glass-fill);
@@ -157,5 +161,146 @@ dialog { background: linear-gradient(135deg, #1e2d46ed, #11192beb); border-color
   .footer-navigation a { font-size: 10px; }
 }
 @supports not (backdrop-filter: blur(1px)) {
-  header, .holo-panel, .innovation-card, .project, .filters, dialog { background-color: #172235; }
+  header, .holo-panel, .innovation-card, .project, .filters, dialog, .timeline-controls, .timeline-card { background-color: #172235; }
+}
+
+/* Timeline: type, color, surfaces and states. Layout lives in globals.css. */
+.timeline-intro h1 {
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: clamp(48px, 6.4vw, 100px);
+  line-height: 1.06;
+  letter-spacing: -.067em;
+  font-weight: 400;
+  color: #f1f5ff;
+  text-shadow: 0 3px 32px #d0dfff0b;
+}
+.timeline-intro > p { font-size: 13px; line-height: 1.95; letter-spacing: -.01em; color: #b4bfd7; }
+.timeline-stats strong { font-size: 34px; font-weight: 300; letter-spacing: -.05em; line-height: 1; color: #f1f5ff; }
+.timeline-stats span, .timeline-number, .timeline-category, .timeline-meta time {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  letter-spacing: .17em;
+  text-transform: uppercase;
+}
+.timeline-stats span { color: #b0c1df; }
+
+/* Controls */
+.timeline-controls { border-radius: 20px; }
+.timeline-count strong {
+  font-size: 48px;
+  font-weight: 300;
+  letter-spacing: -.06em;
+  line-height: 1;
+  background: linear-gradient(110deg, #d3ffff, #a7d8ff 42%, #c6b4fa 85%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.timeline-count span { font-family: var(--font-geist-mono), monospace; font-size: 11px; letter-spacing: .17em; color: #b0c1df; }
+.timeline-now { margin-top: 12px; font-size: 12px; line-height: 1.7; color: #b2bfd8; }
+.timeline-step {
+  border-radius: 12px;
+  border: 1px solid #c9faff80;
+  background: linear-gradient(120deg, #b8f2ff2b, #a3b9ff1a);
+  color: #e5fbff;
+  box-shadow: inset 0 1px #ffffff40, 0 0 30px #8bceff16;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -.01em;
+}
+.timeline-step:hover { color: white; background: linear-gradient(120deg, #b8f2ff40, #b0a3ff2b); box-shadow: inset 0 1px #ffffff50, 0 0 35px #8bceff30; }
+.timeline-step[aria-disabled="true"] { opacity: .38; cursor: default; background: linear-gradient(120deg, #b8f2ff2b, #a3b9ff1a); box-shadow: none; color: #e5fbff; }
+.timeline-toggle {
+  border: 1px solid #d5e6ff30;
+  border-radius: 12px;
+  background: #d3e6ff12;
+  padding: 10px 14px;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  letter-spacing: .17em;
+  color: #c6d9ed;
+}
+.timeline-toggle b { font-size: 18px; font-weight: 300; transition: rotate .3s; }
+.timeline-controls.is-open .timeline-toggle b { rotate: 45deg; }
+.timeline-more .eyebrow { color: #b0c1df; }
+.timeline-chip {
+  border: 1px solid #d5e6ff24;
+  border-radius: 30px;
+  background: transparent;
+  padding: 7px 12px;
+  font-size: 11px;
+  color: #bdcbe0;
+  transition: border-color .3s, background .3s, color .3s;
+}
+.timeline-chip small { font-size: 10px; opacity: .6; }
+.timeline-chip:hover { border-color: #8acbff33; background: #a9baff09; }
+.timeline-chip[aria-pressed="true"] {
+  color: #e1fbff;
+  background: linear-gradient(120deg, #b6faff25, #b3b1ff17);
+  border-color: #d2f7ff55;
+  box-shadow: inset 0 1px #ffffff25, 0 3px 12px #050c2220;
+}
+
+/* Scrubber: a native range input, so arrow keys, Home and End work. */
+.timeline-scrubber { -webkit-appearance: none; appearance: none; width: 100%; height: 24px; margin: 0; background: transparent; cursor: pointer; }
+.timeline-scrubber::-webkit-slider-runnable-track { height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--accent) var(--progress, 0%), #ffffff24 var(--progress, 0%)); }
+.timeline-scrubber::-moz-range-track { height: 2px; border-radius: 2px; background: #ffffff24; }
+.timeline-scrubber::-moz-range-progress { height: 2px; border-radius: 2px; background: var(--accent); }
+.timeline-scrubber::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; margin-top: -7px; border: 0; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 5px #78f2f11f, 0 0 14px #78f2f180; }
+.timeline-scrubber::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 5px #78f2f11f, 0 0 14px #78f2f180; }
+.timeline-scrubber:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; border-radius: 4px; }
+.timeline-scrubber:disabled { opacity: .4; cursor: default; }
+
+/* Rail, nodes and years */
+.timeline-rail:before { background: linear-gradient(#d5e6ff2e, #d5e6ff14); }
+.timeline-item.is-past .timeline-rail:before { background: linear-gradient(#78f2f1b3, #78f2f166); }
+.timeline-item:last-child .timeline-rail:before { background: linear-gradient(#d5e6ff2e, transparent); }
+.timeline-node-dot { border: 1px solid #d5e6ff66; background: #0b1124; transition: background .4s, border-color .4s, box-shadow .4s; }
+.timeline-node:hover .timeline-node-dot { border-color: var(--accent); }
+.timeline-item.is-past .timeline-node-dot { border-color: #78f2f1aa; background: #0f2a38; }
+.timeline-item.is-active .timeline-node-dot { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 0 6px #78f2f11f, 0 0 18px #78f2f180; }
+.timeline-year {
+  font-size: clamp(34px, 3.6vw, 52px);
+  font-weight: 300;
+  letter-spacing: -.06em;
+  line-height: 1;
+  color: #b7c5e7;
+}
+.timeline-item.is-active .timeline-year {
+  background: linear-gradient(110deg, #d3ffff, #a7d8ff 42%, #c6b4fa 85%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.timeline-number { color: #8799bb; }
+
+/* Cards */
+.timeline-card { border-radius: 20px; background-color: #101a2b40; transition: border-color .4s, box-shadow .4s; }
+.timeline-card:hover, .timeline-item.is-active .timeline-card { border-color: #bedfff70; box-shadow: var(--glass-shadow), 0 0 40px #9cbcff0e; }
+.timeline-category { color: #b3edff; }
+.timeline-meta time { letter-spacing: .1em; color: #b3c3df; }
+.timeline-card h2 { font-size: 23px; font-weight: 450; letter-spacing: -.045em; line-height: 1.25; color: #f1f5ff; }
+.timeline-card p { font-size: 13px; line-height: 1.9; color: #b2bfd8; }
+.timeline-people { border-top: 1px solid #c6d8ff1c; }
+.timeline-people .eyebrow { color: #b0c1df; }
+.timeline-people li { padding: 5px 11px; border: 1px solid #d5e6ff30; border-radius: 30px; background: #d3e6ff12; font-size: 11px; color: #c0cde6; }
+.timeline-empty { font-size: 13px; color: #b2bfd8; }
+
+@media (max-width: 1000px) {
+  .timeline-intro h1 { font-size: clamp(48px, 9vw, 72px); }
+  /* Sticky over scrolling content: add body to the near-transparent glass fill so text behind stays quiet. */
+  .timeline-controls { border-radius: 16px; background-color: #0b112099; }
+  .timeline-toggle { padding: 8px 12px; }
+  .timeline-scrubber { height: 20px; }
+  .timeline-count strong { font-size: 30px; }
+  .timeline-now { margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media (max-width: 680px) {
+  .timeline-intro h1 { font-size: clamp(40px, 11.6vw, 64px); }
+  .timeline-intro > p { font-size: 12px; }
+  .timeline-stats strong { font-size: 28px; }
+  .timeline-count strong { font-size: 26px; }
+  .timeline-now { display: none; }
+  .timeline-step-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .timeline-card { border-radius: 18px; }
+  .timeline-card h2 { font-size: 21px; }
+  .timeline-card p { font-size: 12px; }
 }
