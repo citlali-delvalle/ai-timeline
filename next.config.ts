@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
 
 output: "export",
 
-basePath: "/nextjs-design-responsive",
+basePath: "/ai-timeline",
 
 images: { unoptimized: true },
 
